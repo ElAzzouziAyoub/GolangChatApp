@@ -5,6 +5,9 @@ import (
 	"log"
 	"database/sql"
 	_ "github.com/lib/pq" // Postgres driver
+	"net/http"
+	"encoding/json"
+	"bytes"
 )
 
 
@@ -24,7 +27,6 @@ var inbox []string
 var constString string = "postgres://ayoub:secret@localhost:5432/testdb?sslmode=disable"
 
 func SendMessage(){
-
 	
 			var to string 
 			var body string 
@@ -40,18 +42,23 @@ func SendMessage(){
 				Body:body,
 			}
 
-			something, err := db.Exec(
-    		"INSERT INTO messages (sender, receiver, body) VALUES ($1, $2, $3)",
-    		msg.From,
-    		msg.To,
-    		msg.Body,
-			)
-			if err != nil {
-    		log.Println("insert failed:", err)
-			}
-			if something == nil {
-				fmt.Print("nothing literally")
-			}
+
+			data, err := json.Marshal(msg)
+    	if err != nil {
+        log.Fatal("JSON marshal error:", err)
+    	}
+
+    	resp, err := http.Post(
+        "http://localhost:8080/messages",
+        "application/json",
+        bytes.NewBuffer(data),
+    	)
+    	if err != nil {
+        log.Fatal("HTTP POST error:", err)
+    	}
+    	defer resp.Body.Close()
+
+			
 }
 
 
