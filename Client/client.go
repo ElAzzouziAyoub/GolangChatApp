@@ -62,38 +62,43 @@ func SendMessage(){
 }
 
 
+func CheckInbox(username string) {
+    // Build the URL with query parameter
+    url := fmt.Sprintf("http://localhost:8080/?receiver=%s", username)
 
-func CheckInbox() {
-    rows, err := db.Query(
-        "SELECT sender, body FROM messages WHERE receiver = $1 ORDER BY id",
-        from,
-    )
+    // Send GET request to server
+    resp, err := http.Get(url)
     if err != nil {
-        log.Println("Query failed:", err)
+        log.Println("HTTP GET failed:", err)
         return
     }
-    defer rows.Close()
+    defer resp.Body.Close()
+
+    if resp.StatusCode != http.StatusOK {
+        log.Println("Server returned:", resp.Status)
+        return
+    }
+
+    // Decode the JSON array returned by server
+    var messages []Message
+    if err := json.NewDecoder(resp.Body).Decode(&messages); err != nil {
+        log.Println("Failed to decode JSON:", err)
+        return
+    }
+
+    // Display messages
+    if len(messages) == 0 {
+        fmt.Println("Inbox is empty.")
+        return
+    }
 
     fmt.Println("\n--- Inbox ---")
-    var count int
-    for rows.Next() {
-        var sender string
-        var body string
-        if err := rows.Scan(&sender, &body); err != nil {
-            log.Println("Row scan failed:", err)
-            continue
-        }
-        fmt.Printf("From %s: %s\n", sender, body)
-        count++
+    for _, m := range messages {
+        fmt.Printf("From %s: %s\n", m.From, m.Body)
     }
-    if err := rows.Err(); err != nil {
-        log.Println("Rows iteration error:", err)
-    }
-    if count == 0 {
-        fmt.Println("No messages found.")
-    }
-    fmt.Println("------------\n")
+    fmt.Println("------------")
 }
+
 
 
 func main(){
