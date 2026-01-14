@@ -11,8 +11,8 @@ import (
 
 
 type Message struct{
-	From string		`json:"body"`
-	To string		`json:"body"`
+	From string		`json:"from"`
+	To string		`json:"to"`
 	Body string `json:"body"`
 
 }

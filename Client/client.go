@@ -49,7 +49,7 @@ func SendMessage(){
     	}
 
     	resp, err := http.Post(
-        "http://localhost:8080/messages",
+        "http://localhost:8080/",
         "application/json",
         bytes.NewBuffer(data),
     	)
