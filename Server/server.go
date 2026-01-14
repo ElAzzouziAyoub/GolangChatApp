@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"sync"
 	"database/sql"
+	_"github.com/lib/pq"
 )
 
 
@@ -18,14 +18,12 @@ type Message struct{
 }
 
 var inboxes = make(map[string][]Message)
-var mu sync.Mutex // protects inboxes
-var constString string = "postgres://postgres:secret@localhost:5432/gopgtest?sslmode=disable"
+var constString string = "postgres://ayoub:secret@localhost:5432/testdb?sslmode=disable"
 var db *sql.DB 
 var err error
 
 
 func handle(w http.ResponseWriter,r *http.Request){
-	w.Write([]byte("Wassup"))
 	fmt.Println("Connection established")
 
 	switch r.Method {
@@ -78,7 +76,7 @@ func handle(w http.ResponseWriter,r *http.Request){
 
 func main(){
 
-	db ,err := sql.Open("postgres",constString)
+	db ,err = sql.Open("postgres",constString)
 	if err != nil {
 		log.Fatal(err)
 	}
