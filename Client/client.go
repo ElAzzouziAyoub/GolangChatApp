@@ -116,7 +116,8 @@ func main(){
 
 	for {
 		var choice int 
-
+		
+		fmt.Println("---------------------")
 		fmt.Println("Choose an Option :")
 		fmt.Println("1-Send a message ")
 		fmt.Println("2- Check Inbox")
@@ -132,7 +133,7 @@ func main(){
 			SendMessage()
 		}
 		if choice == 2 {
-			CheckInbox()
+			CheckInbox(from)
 		}
 
 

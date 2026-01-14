@@ -35,7 +35,6 @@ func handle(w http.ResponseWriter,r *http.Request){
             http.Error(w, "Invalid JSON", http.StatusBadRequest)
             return
         }
-
         // Insert into Postgres
         _, err := db.Exec(
             "INSERT INTO messages (sender, receiver, body) VALUES ($1,$2,$3)",
@@ -49,8 +48,28 @@ func handle(w http.ResponseWriter,r *http.Request){
 
         w.WriteHeader(http.StatusOK)
         w.Write([]byte("Message stored successfully"))
-		
+	
+
 	case http.MethodGet:
+    receiver := r.URL.Query().Get("receiver")
+
+    rows, err := db.Query("SELECT sender, body FROM messages WHERE receiver=$1 ORDER BY id", receiver)
+    if err != nil {
+        http.Error(w, "DB error", http.StatusInternalServerError)
+        return
+    }
+    defer rows.Close()
+
+    var messages []Message
+    for rows.Next() {
+        var m Message
+        if err := rows.Scan(&m.From, &m.Body); err != nil {
+            continue
+        }
+        messages = append(messages, m)
+    }
+
+    json.NewEncoder(w).Encode(messages)
 
 	default:
 		w.WriteHeader(http.StatusNotImplemented)
@@ -60,10 +79,10 @@ func handle(w http.ResponseWriter,r *http.Request){
 func main(){
 
 	db ,err := sql.Open("postgres",constString)
-		defer db.Close()
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer db.Close()
 
 	http.HandleFunc("/",handle)
 	http.ListenAndServe(":8080",nil)
